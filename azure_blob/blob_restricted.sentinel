@@ -1,0 +1,20 @@
+# This policy uses the Sentinel tfplan functions
+# to ensure new Azure Storage Accounts have network restrictions set to deny
+# Supported for Current Azure plugin ~>3.x.x
+
+# Import Functions used below
+import "tfplan-functions" as plan
+
+# Get all Azure Storage accounts from tfplan
+allStorageAccounts = plan.find_resources("azurerm_storage_account")
+
+# Set flag as false before control check
+validated = false
+
+# Filter for Network Rule Default Action on all Storage Accounts and check if it's set to Deny
+publicStorageAccounts = plan.filter_attribute_is_not_value(allStorageAccounts, "network_rules.0.default_action", "Deny", true)
+
+# Control 1.2.3 - Checks whether Storage Account Network setting is set to 'Deny'
+main = rule {
+	length(publicStorageAccounts["messages"]) is 0
+}
